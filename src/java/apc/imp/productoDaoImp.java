@@ -97,8 +97,8 @@ public class productoDaoImp implements apc.dao.productoDao {
     }
 
     @Override
-    public Producto obtenerProductoPornombreProducto(Session session, Integer nombreProducto) throws Exception {
-        String hql="FROM Cliente WHERE nombreProducto=:nombreProducto";
+    public Producto obtenerProductoPornombreProducto(Session session, String nombreProducto) throws Exception {
+        String hql="FROM Producto WHERE nombreProducto=:nombreProducto";
         Query q = session.createQuery(hql);
         q.setParameter("nombreProducto", nombreProducto);
         return (Producto) q.uniqueResult();

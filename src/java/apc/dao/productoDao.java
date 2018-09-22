@@ -22,6 +22,6 @@ public interface productoDao {
     
     // Metodo para factura
     public Producto obtenerProductoPorcodBarra(Session session, String codBarra) throws Exception;
-    public Producto obtenerProductoPornombreProducto(Session session, Integer nombreProducto) throws Exception;
+    public Producto obtenerProductoPornombreProducto(Session session, String nombreProducto) throws Exception;
     
 }

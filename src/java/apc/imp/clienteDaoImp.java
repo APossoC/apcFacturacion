@@ -98,4 +98,12 @@ public class clienteDaoImp implements clienteDao {
         return (Cliente) q.uniqueResult();
     }
 
+    @Override
+    public Cliente listarClientePorDui(Session session, String dui) throws Exception {
+        String hql="FROM Cliente WHERE dui=:dui";
+        Query q = session.createQuery(hql);
+        q.setParameter("dui", dui);
+        return (Cliente) q.uniqueResult();
+    }
+
 }

@@ -22,4 +22,5 @@ public interface clienteDao {
     
     // Metodo para factura
     public Cliente obtenerClientePorDui(Session session, String dui) throws Exception;
+    public Cliente listarClientePorDui(Session session, String dui) throws Exception;
 }
