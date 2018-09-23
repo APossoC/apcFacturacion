@@ -19,9 +19,10 @@ import javax.faces.view.ViewScoped;
  */
 @Named(value = "productoBean")
 @ViewScoped
-public class productoBean implements Serializable{
+public class productoBean implements Serializable {
 
-     private List<Producto> listaProductos;
+    private List<Producto> listaProductos;
+    private List<Producto> listaProductosFiltrados;
     private Producto producto;
 
     public productoBean() {
@@ -38,6 +39,16 @@ public class productoBean implements Serializable{
 
     public void setProducto(Producto producto) {
         this.producto = producto;
+    }
+
+    public void setListaProductosFiltrados(List<Producto> listaProductosFiltrados) {
+        this.listaProductosFiltrados = listaProductosFiltrados;
+    }
+
+    public List<Producto> getListaProductosFiltrados() {
+        productoDao pDao= new productoDaoImp();
+        listaProductosFiltrados = pDao.listarProducto();
+        return listaProductosFiltrados;
     }
 
     public List<Producto> getListaProductos() {

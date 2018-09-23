@@ -2,6 +2,7 @@ package apc.model;
 // Generated 18/09/2018 08:17:12 PM by Hibernate Tools 4.3.1
 
 
+import apc.bean.facturaBean;
 import java.math.BigDecimal;
 
 /**
@@ -16,20 +17,24 @@ public class Detallefactura  implements java.io.Serializable {
      private String codBarra;
      private String nombreProducto;
      private int cantidad;
-     private BigDecimal precioVenta;
+     private float precioVenta;
      private BigDecimal total;
 
     public Detallefactura() {
     }
 
-    public Detallefactura(Factura factura, Producto producto, String codBarra, String nombreProducto, int cantidad, BigDecimal precioVenta, BigDecimal total) {
+    public Detallefactura(Factura factura, Producto producto, String codBarra, String nombreProducto, int cantidad, float precioVenta, BigDecimal total) {
        this.factura = factura;
        this.producto = producto;
        this.codBarra = codBarra;
        this.nombreProducto = nombreProducto;
        this.cantidad = cantidad;
        this.precioVenta = precioVenta;
-       this.total = total;
+       this.total = total;    }
+
+    public Detallefactura(Object object, Object object0, facturaBean aThis, String codBarra, Integer codProducto, int i, float precioVenta, BigDecimal bigDecimal) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
     }
    
     public Integer getCodDetalle() {
@@ -74,11 +79,11 @@ public class Detallefactura  implements java.io.Serializable {
     public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
     }
-    public BigDecimal getPrecioVenta() {
+    public float getPrecioVenta() {
         return this.precioVenta;
     }
     
-    public void setPrecioVenta(BigDecimal precioVenta) {
+    public void setPrecioVenta(float precioVenta) {
         this.precioVenta = precioVenta;
     }
     public BigDecimal getTotal() {

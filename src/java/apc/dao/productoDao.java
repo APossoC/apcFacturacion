@@ -20,7 +20,7 @@ public interface productoDao {
     public void updateProducto(Producto producto);
     public void deleteProducto(Producto producto);
     
-    // Metodo para factura
+    // Metodos para factura
     public Producto obtenerProductoPorcodBarra(Session session, String codBarra) throws Exception;
     public Producto obtenerProductoPornombreProducto(Session session, String nombreProducto) throws Exception;
     

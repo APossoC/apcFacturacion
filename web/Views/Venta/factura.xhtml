@@ -3,7 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
 
     <body>
 
@@ -33,8 +34,8 @@
                     <p:growl id="mensajeGeneral" showDetail="true" life="3000" autoUpdate="true"/>
                     <p:panel header="-*-" style=" width: 900px; margin: 0 auto;text-align: center;">
                         <p:layout id="capaDatosFactura" style="width:  100%;height: 150px;">
-                            <p:layoutUnit id="datosCliente" position="center" style="padding: 5px; text-align: justify;
-                                          font-size: 14px" size="300">
+                            <p:layoutUnit id="datosCliente" position="center" 
+                                          style="padding: 5px; text-align: justify;font-size: 14px" size="300">
                                 <h:panelGrid id="gridBuscarDatosCliente" columns="5">
                                     <p:outputLabel value="Identificacion: " style="font-weight: bold"></p:outputLabel>
                                     <p:inputText id="txtBuscarCliente" value="#{facturaBean.dui}" size="15">
@@ -70,24 +71,27 @@
                             </p:layoutUnit>                            
                         </p:layout>
                         <p:separator/>
-                        <h:panelGrid id="gridBuscarProducto" columns="3">
-                            <p:outputLabel value="Codigo Barra "/>
-                            <p:inputText id="txtBuscarProducto" value="#{facturaBean.codBarra}" size="15">
-                                <p:ajax event="blur" listener="#{facturaBean.agregarDatosClientesPorcodBarra()}"
-                                        update=":formFactura:tablaClientes :formFactura:txtBuscarProducto"/> 
-                            </p:inputText>
-                                <p:commandButton value="Buscar" oncomplete="PF('dialogProductos').show();" 
-                                                     update="formFactura:dlgProductos"/>
-                        </h:panelGrid>
-                        <p:separator/>
-                        <p:dataTable id="tablaProductosFactura" value="#{productoBean.listaProductos}" var="prod">
 
-                            <p:column headerText="Codigo">
-                                <h:outputText value="#{facturaBean.producto.codProducto}"/>
+                        <h:panelGrid id="gridBuscarProducto" columns="3" style="font-weight: bold;font-size: 14px">
+                            <p:outputLabel value="Codigo Barra" />                            
+                            <p:inputText id="txtBuscarProducto" value="#{facturaBean.codBarra}" size="15">
+                                <p:ajax event="blur" listener="#{facturaBean.agregarDatosProdcutoPorcodBarra()}"
+                                        update=":formFactura:tablaProductosFactura :formFactura:txtBuscarProducto"/> 
+                            </p:inputText>
+
+                            <p:commandButton value="Buscar" oncomplete="PF('dialogProductos').show();" 
+                                             update="formFactura:dlgProductos"/>
+                        </h:panelGrid>
+
+                        <p:separator/>
+                        <p:dataTable id="tablaProductosFactura" value="#{facturaBean.listaDetalleFactura}" var="item" style="font-size: 14px">
+
+                            <p:column headerText="Codigo de barra">
+                                <h:outputText value="#{item.codBarra}"/>
                             </p:column>
 
-                            <p:column headerText="Nombre del producto">
-                                <h:outputText value="#{facturaBean.producto.nombreProducto}"/>
+                            <p:column headerText="Nombre del producto" style="font-weight: bold">
+                                <h:outputText value="#{item.nombreProducto}"/>
                             </p:column>
 
                             <p:column headerText="Cantidad">
@@ -96,7 +100,7 @@
 
                             <p:column headerText="Precio de Venta">
                                 $
-                                <h:outputText value="#{facturaBean.producto.precioVenta}"/>
+                                <h:outputText value="#{item.precioVenta}"/>
                             </p:column>
 
                             <p:column headerText="Toral">
@@ -117,7 +121,8 @@
                     <p:dialog id="dlgClientes" widgetVar="dialogClientes" modal="true" resizable="false"
                               showEffect="puff" hideEffect="puff">
                         <p:dataTable id="tablaClientes" paginator="true" paginatorPosition="top "  style="width: 900px"
-                                     var="ct" value="#{clienteBean.listaClientes}" emptyMessage="No hay datos de cliente">
+                                     var="ct" value="#{clienteBean.listaClientes}" emptyMessage="No hay datos de cliente"
+                                     >
                             <p:column headerText="Codigo">
                                 <h:outputText value="#{ct.codCliente}"/>
                             </p:column>
@@ -154,7 +159,17 @@
                     <p:dialog id="dlgProductos" widgetVar="dialogProductos" modal="true" resizable="false"
                               showEffect="puff" hideEffect="puff">
                         <p:dataTable id="tablaProductos" paginator="true" paginatorPosition="top "  style="width: 900px"
-                                     var="pro" value="#{productoBean.listaProductos}" emptyMessage="No hay datos de cliente">
+                                     var="pro" value="#{productoBean.listaProductos}" emptyMessage="No hay datos de productos"
+                                     filteredValue="#{productoBean.listaProductosFiltrados}" widgetVar="filtroTablaProducto"
+                                     
+                                     >
+                            <f:facet name="header">
+                                <p:outputPanel>
+                                    <h:outputText value="Navegar:" />
+                                    <p:inputText id="txtFiltroTablaProductos" onkeyup="PF('filtroTablaProducto').filter()" style="width:150px" placeholder="Enter keyword"/>
+                                </p:outputPanel>
+                            </f:facet>
+
                             <p:column headerText="Codigo">
                                 <h:outputText value="#{pro.codProducto}"/>
                             </p:column>

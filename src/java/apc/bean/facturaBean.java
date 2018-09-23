@@ -10,9 +10,14 @@ import apc.dao.productoDao;
 import apc.imp.clienteDaoImp;
 import apc.imp.productoDaoImp;
 import apc.model.Cliente;
+import apc.model.Detallefactura;
 import apc.model.Producto;
 import apc.util.HibernateUtil;
+import com.sun.xml.rpc.processor.modeler.j2ee.xml.deploymentExtensionType;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
@@ -31,13 +36,18 @@ public class facturaBean implements Serializable {
     Session session = null;
     Transaction transaction;
 
-    private Cliente cliente;  
+    //Variables para busquedas de cliente
+    private Cliente cliente;
     private String dui;
-    
+
+    //Variables para busquedas de producto
     private Producto producto;
     private String codBarra;
 
+    private List<Detallefactura> listaDetalleFactura;
+
     public facturaBean() {
+        this.listaDetalleFactura = new ArrayList<>();
     }
 
     public Cliente getCliente() {
@@ -70,11 +80,18 @@ public class facturaBean implements Serializable {
 
     public void setCodBarra(String codBarra) {
         this.codBarra = codBarra;
-    }
-    
-    
 
-    // metodo para buscar los datos de los clientes buscado por  dialog
+    }
+
+    public List<Detallefactura> getListaDetalleFactura() {
+        return listaDetalleFactura;
+    }
+
+    public void setListaDetalleFactura(List<Detallefactura> listaDetalleFactura) {
+        this.listaDetalleFactura = listaDetalleFactura;
+    }
+
+    // metodo para buscar los datos de los clientes buscado por  dialogCliente
     public void agregarDatosClientes(String dui) {
         this.session = null;
         this.transaction = null;
@@ -112,7 +129,7 @@ public class facturaBean implements Serializable {
             this.session = HibernateUtil.getSessionFactory().openSession();
             clienteDao cDao = new clienteDaoImp();
             this.transaction = this.session.beginTransaction();
-            
+
             //obtener los datos del clente en la variable objeto cliente, segun codigo cliente
             this.cliente = cDao.obtenerClientePorDui(this.session, this.dui);
             //Evaluar si se lleno el objeto cliente
@@ -135,8 +152,8 @@ public class facturaBean implements Serializable {
             }
         }
     }
-    
-     // metodo para buscar los datos de los productos buscado por  dialog
+
+    // metodo para buscar los datos de los productos buscado por  dialogProducto
     public void agregarDatosProductos(String codBarra) {
         this.session = null;
         this.transaction = null;
@@ -146,10 +163,13 @@ public class facturaBean implements Serializable {
             productoDao pDao = new productoDaoImp();
             this.transaction = this.session.beginTransaction();
 
-            //obtener los datos del producto en la variable objeto prodcuto, segun cod barra
+            //obtener los datos del producto en la variable objeto prodcuto, segun codbarra
             this.producto = pDao.obtenerProductoPorcodBarra(this.session, codBarra);
+
+            //asgnacion de valores a datelle factura
+            this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(), this.producto.getNombreProducto(), 0, this.producto.getPrecioVenta(), new BigDecimal(0)));
             this.transaction.commit();
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Datos del cliente agregados"));
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Producto agregados al detalle"));
 
         } catch (Exception e) {
             if (this.transaction != null) {
@@ -162,28 +182,31 @@ public class facturaBean implements Serializable {
             }
         }
     }
-    
-    // metodo para agregar los datos de los productos buscado por codBarra
-    public void agregarDatosClientesPorcodBarra() {
+
+    // metodo para agregar los datos de los productos buscado por codbarra
+    public void agregarDatosProdcutoPorcodBarra() {
         this.session = null;
         this.transaction = null;
         try {
-            if (this.dui.equals("")) {
+            if (this.codBarra.equals("")) {
                 return;
             }
             this.session = HibernateUtil.getSessionFactory().openSession();
             productoDao pDao = new productoDaoImp();
             this.transaction = this.session.beginTransaction();
-            
-            //obtener los datos del producto en la variable objeto prodcuto, segun cod barra
+
+            //obtener los datos del prolucto en la variable objeto producto, segun codBarra
             this.producto = pDao.obtenerProductoPorcodBarra(this.session, this.codBarra);
+
             //Evaluar si se lleno el objeto cliente
             if (this.producto != null) {
+                this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(), this.producto.getNombreProducto(), 0, this.producto.getPrecioVenta(), new BigDecimal(0)));
+                
                 this.codBarra = null;
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Datos del cliente agregados"));
+                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Producto agregados al detalle"));
             } else {
                 this.codBarra = null;
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Incorrecto", "Cliente no encontrado"));
+                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Incorrecto", "Producto no encontrado"));
             }
             this.transaction.commit();
         } catch (Exception e) {
@@ -196,6 +219,6 @@ public class facturaBean implements Serializable {
                 this.session.close();
             }
         }
-    }
 
+    }
 }
