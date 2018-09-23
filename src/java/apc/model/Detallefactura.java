@@ -18,12 +18,13 @@ public class Detallefactura  implements java.io.Serializable {
      private String nombreProducto;
      private int cantidad;
      private float precioVenta;
-     private BigDecimal total;
+     private float total;
 
     public Detallefactura() {
     }
 
-    public Detallefactura(Factura factura, Producto producto, String codBarra, String nombreProducto, int cantidad, float precioVenta, BigDecimal total) {
+    public Detallefactura(Factura factura, Producto producto, String codBarra, String nombreProducto, int cantidad, 
+            float precioVenta, float total) {
        this.factura = factura;
        this.producto = producto;
        this.codBarra = codBarra;
@@ -86,11 +87,11 @@ public class Detallefactura  implements java.io.Serializable {
     public void setPrecioVenta(float precioVenta) {
         this.precioVenta = precioVenta;
     }
-    public BigDecimal getTotal() {
+    public float getTotal() {
         return this.total;
     }
     
-    public void setTotal(BigDecimal total) {
+    public void setTotal(float total) {
         this.total = total;
     }
 

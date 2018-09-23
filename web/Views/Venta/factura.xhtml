@@ -95,7 +95,8 @@
                             </p:column>
 
                             <p:column headerText="Cantidad">
-
+                                <h:outputText value="#{item.cantidad}"/>
+                                Unidades
                             </p:column>
 
                             <p:column headerText="Precio de Venta">
@@ -103,12 +104,16 @@
                                 <h:outputText value="#{item.precioVenta}"/>
                             </p:column>
 
-                            <p:column headerText="Toral">
-
+                            <p:column headerText="Total">
+                                $
+                                <h:outputText value="#{item.total}"/>
                             </p:column>
                         </p:dataTable>
-                        <p:outputLabel value="TOTAL VENTA"/>
-                        $ <p:outputLabel value="total a vender"/>
+                        
+                        <h:panelGrid id="gridTotalFactura" columns="2" style="font-size: 24px;margin: 0 auto"> 
+                        TOTAL VENTA $
+                        <p:outputLabel value="#{facturaBean.factura.totalVenta}"/>
+                        </h:panelGrid>
                         <p:separator/>
                         <p:commandButton value="Registrar" style="width: 150px; height: 50px" />
                         <p:commandButton value="Imprimir" style="width: 150px; height: 50px" />
@@ -160,21 +165,20 @@
                               showEffect="puff" hideEffect="puff">
                         <p:dataTable id="tablaProductos" paginator="true" paginatorPosition="top "  style="width: 900px"
                                      var="pro" value="#{productoBean.listaProductos}" emptyMessage="No hay datos de productos"
-                                     filteredValue="#{productoBean.listaProductosFiltrados}" widgetVar="filtroTablaProducto"
-                                     
-                                     >
+                                     widgetVar="filtroTablaProducto" >
                             <f:facet name="header">
                                 <p:outputPanel>
                                     <h:outputText value="Navegar:" />
-                                    <p:inputText id="txtFiltroTablaProductos" onkeyup="PF('filtroTablaProducto').filter()" style="width:150px" placeholder="Enter keyword"/>
+                                    <p:inputText id="globalFilter" onkeyup="PF('filtroTablaProducto').filter()" style="width:150px" placeholder="Enter keyword"/>
+
                                 </p:outputPanel>
                             </f:facet>
 
-                            <p:column headerText="Codigo">
+                            <p:column headerText="Codigo" >
                                 <h:outputText value="#{pro.codProducto}"/>
                             </p:column>
 
-                            <p:column headerText="Nombre del producto">
+                            <p:column headerText="Nombre del producto" filterBy="#{pro.nombreProducto}" footerText="contains" filterMatchMode="contains">
                                 <h:outputText value="#{pro.nombreProducto}"/>
                             </p:column>
 
@@ -199,15 +203,28 @@
 
                             <p:column headerText="">
                                 <p:commandButton value="Seleccinar" 
-                                                 actionListener="#{facturaBean.agregarDatosProductos(pro.codBarra)}"
-                                                 oncomplete="PF('dialogProductos').hide();" 
-                                                 update="formFactura:tablaProductosFactura"/>                           
+                                                 actionListener="#{facturaBean.pedirCantidadProducto(pro.codBarra)}"
+                                                 oncomplete="PF('dialogCantidadProducto').show();" 
+                                                 update="formFactura:dlgCantidadProducto"/>                           
                             </p:column>
 
 
                         </p:dataTable>
                         <p:commandButton value="Cerrar" onclick="PF('dialogProductos').hide();" />
                     </p:dialog>
+
+                    <!--Dialogo para filtar productos x codigo de barra-->
+                    <p:dialog id="dlgCantidadProducto" widgetVar="dialogCantidadProducto" modal="true" 
+                              showEffect="puff" hideEffect="puff">
+                        Cantidad producto a vender:
+                        <p:inputText id="txtCantidadProducto" value="#{facturaBean.cantidadProducto}"/>
+                        <p:commandButton value="Aceptar" actionListener="#{facturaBean.agregarDatosProductos()}"
+                                         update="formFactura:tablaProductosFactura :formFactura:dlgCantidadProducto
+                                         formFactura:gridTotalFactura"
+                                         oncomplete="PF('dialogCantidadProducto').hide(); PF('dialogProductos').hide();"
+                                         />
+                    </p:dialog>
+
 
                 </h:form>
             </ui:define>

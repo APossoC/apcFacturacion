@@ -11,9 +11,9 @@ import apc.imp.clienteDaoImp;
 import apc.imp.productoDaoImp;
 import apc.model.Cliente;
 import apc.model.Detallefactura;
+import apc.model.Factura;
 import apc.model.Producto;
 import apc.util.HibernateUtil;
-import com.sun.xml.rpc.processor.modeler.j2ee.xml.deploymentExtensionType;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -44,9 +44,14 @@ public class facturaBean implements Serializable {
     private Producto producto;
     private String codBarra;
 
+    private Integer cantidadProducto;
+    private String productoSeleccionado;
+    private Factura factura;
+
     private List<Detallefactura> listaDetalleFactura;
 
     public facturaBean() {
+        this.factura = new Factura();
         this.listaDetalleFactura = new ArrayList<>();
     }
 
@@ -83,6 +88,22 @@ public class facturaBean implements Serializable {
 
     }
 
+    public Integer getCantidadProducto() {
+        return cantidadProducto;
+    }
+
+    public void setCantidadProducto(Integer cantidadProducto) {
+        this.cantidadProducto = cantidadProducto;
+    }
+
+    public Factura getFactura() {
+        return factura;
+    }
+
+    public void setFactura(Factura factura) {
+        this.factura = factura;
+    }
+
     public List<Detallefactura> getListaDetalleFactura() {
         return listaDetalleFactura;
     }
@@ -116,6 +137,11 @@ public class facturaBean implements Serializable {
                 this.session.close();
             }
         }
+    }
+
+    //Metodo para pedir cantidad de producto.
+    public void pedirCantidadProducto(String codBarra) {
+        this.productoSeleccionado = codBarra;
     }
 
     // metodo para agregar los datos de los clientes buscado por dui
@@ -154,7 +180,7 @@ public class facturaBean implements Serializable {
     }
 
     // metodo para buscar los datos de los productos buscado por  dialogProducto
-    public void agregarDatosProductos(String codBarra) {
+    public void agregarDatosProductos() {
         this.session = null;
         this.transaction = null;
 
@@ -164,13 +190,18 @@ public class facturaBean implements Serializable {
             this.transaction = this.session.beginTransaction();
 
             //obtener los datos del producto en la variable objeto prodcuto, segun codbarra
-            this.producto = pDao.obtenerProductoPorcodBarra(this.session, codBarra);
+            this.producto = pDao.obtenerProductoPorcodBarra(this.session, this.productoSeleccionado);
 
             //asgnacion de valores a datelle factura
-            this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(), this.producto.getNombreProducto(), 0, this.producto.getPrecioVenta(), new BigDecimal(0)));
+            this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(),
+                    this.producto.getNombreProducto(), this.cantidadProducto, this.producto.getPrecioVenta(),
+                    this.cantidadProducto * this.producto.getPrecioVenta()));
             this.transaction.commit();
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Producto agregados al detalle"));
-
+            
+            //Llamada al metodo totalFacturaventa
+            this.totalFacturaVenta();
+            
         } catch (Exception e) {
             if (this.transaction != null) {
                 System.out.println(e.getMessage());
@@ -196,19 +227,24 @@ public class facturaBean implements Serializable {
             this.transaction = this.session.beginTransaction();
 
             //obtener los datos del prolucto en la variable objeto producto, segun codBarra
-            this.producto = pDao.obtenerProductoPorcodBarra(this.session, this.codBarra);
+            this.producto = pDao.obtenerProductoPorcodBarra(this.session, this.productoSeleccionado);
 
             //Evaluar si se lleno el objeto cliente
             if (this.producto != null) {
-                this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(), this.producto.getNombreProducto(), 0, this.producto.getPrecioVenta(), new BigDecimal(0)));
-                
+                this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(),
+                        this.producto.getNombreProducto(), this.cantidadProducto, this.producto.getPrecioVenta(),
+                        this.cantidadProducto* this.producto.getPrecioVenta()));
+
                 this.codBarra = null;
                 FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Producto agregados al detalle"));
+                this.cantidadProducto = null;
+
             } else {
                 this.codBarra = null;
                 FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Incorrecto", "Producto no encontrado"));
             }
             this.transaction.commit();
+              this.totalFacturaVenta();
         } catch (Exception e) {
             if (this.transaction != null) {
                 System.out.println(e.getMessage());
@@ -221,4 +257,24 @@ public class facturaBean implements Serializable {
         }
 
     }
+    
+    //Metodo para calcualr el total a vender en factura
+    public void totalFacturaVenta(){
+    Float totalFacturaVenta = new Float("0");
+    
+        try {
+            for(Detallefactura item :listaDetalleFactura){
+            Float totalVentaPorProducto = new BigDecimal(item.getCantidad()).
+                                                    multiply((item.getPrecioVenta()));
+            item.setTotal(totalVentaPorProducto);
+            totalFacturaVenta= totalFacturaVenta + totalVentaPorProducto;
+            }
+            this.factura.setTotalVenta(totalFacturaVenta);
+            
+        } catch (Exception e) {            
+            System.out.println(e.getMessage());
+        }
+    }
+    
+    
 }
