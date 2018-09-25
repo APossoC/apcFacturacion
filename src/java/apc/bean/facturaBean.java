@@ -18,12 +18,14 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.control.TableColumn.CellEditEvent;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.primefaces.event.RowEditEvent;
 
 /**
  *
@@ -42,9 +44,9 @@ public class facturaBean implements Serializable {
 
     //Variables para busquedas de producto
     private Producto producto;
-    private String codBarra;
+    private String codigoBarra;
 
-    private Integer cantidadProducto;
+    private String cantidadProducto;
     private String productoSeleccionado;
     private Factura factura;
 
@@ -80,19 +82,19 @@ public class facturaBean implements Serializable {
     }
 
     public String getCodBarra() {
-        return codBarra;
+        return codigoBarra;
     }
 
     public void setCodBarra(String codBarra) {
-        this.codBarra = codBarra;
+        this.codigoBarra = codBarra;
 
     }
 
-    public Integer getCantidadProducto() {
+    public String getCantidadProducto() {
         return cantidadProducto;
     }
 
-    public void setCantidadProducto(Integer cantidadProducto) {
+    public void setCantidadProducto(String cantidadProducto) {
         this.cantidadProducto = cantidadProducto;
     }
 
@@ -185,66 +187,28 @@ public class facturaBean implements Serializable {
         this.transaction = null;
 
         try {
-            this.session = HibernateUtil.getSessionFactory().openSession();
-            productoDao pDao = new productoDaoImp();
-            this.transaction = this.session.beginTransaction();
 
-            //obtener los datos del producto en la variable objeto prodcuto, segun codbarra
-            this.producto = pDao.obtenerProductoPorcodBarra(this.session, this.productoSeleccionado);
-
-            //asgnacion de valores a datelle factura
-            this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(),
-                    this.producto.getNombreProducto(), this.cantidadProducto, this.producto.getPrecioVenta(),
-                    this.cantidadProducto * this.producto.getPrecioVenta()));
-            this.transaction.commit();
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Producto agregados al detalle"));
-            
-            //Llamada al metodo totalFacturaventa
-            this.totalFacturaVenta();
-            
-        } catch (Exception e) {
-            if (this.transaction != null) {
-                System.out.println(e.getMessage());
-                transaction.rollback();
-            }
-        } finally {
-            if (this.session != null) {
-                this.session.close();
-            }
-        }
-    }
-
-    // metodo para agregar los datos de los productos buscado por codbarra
-    public void agregarDatosProdcutoPorcodBarra() {
-        this.session = null;
-        this.transaction = null;
-        try {
-            if (this.codBarra.equals("")) {
-                return;
-            }
-            this.session = HibernateUtil.getSessionFactory().openSession();
-            productoDao pDao = new productoDaoImp();
-            this.transaction = this.session.beginTransaction();
-
-            //obtener los datos del prolucto en la variable objeto producto, segun codBarra
-            this.producto = pDao.obtenerProductoPorcodBarra(this.session, this.productoSeleccionado);
-
-            //Evaluar si se lleno el objeto cliente
-            if (this.producto != null) {
-                this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(),
-                        this.producto.getNombreProducto(), this.cantidadProducto, this.producto.getPrecioVenta(),
-                        this.cantidadProducto* this.producto.getPrecioVenta()));
-
-                this.codBarra = null;
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Producto agregados al detalle"));
-                this.cantidadProducto = null;
-
+            if (!(cantidadProducto.matches("[0-9]*")) || this.cantidadProducto.equals("0") || this.cantidadProducto.equals("")) {
+                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Cantidad incorrecta"));
+                this.cantidadProducto = "";
             } else {
-                this.codBarra = null;
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Incorrecto", "Producto no encontrado"));
+                this.session = HibernateUtil.getSessionFactory().openSession();
+                productoDao pDao = new productoDaoImp();
+                this.transaction = this.session.beginTransaction();
+
+                //obtener los datos del producto en la variable objeto prodcuto, segun codbarra
+                this.producto = pDao.obtenerProductoPorcodBarra(this.session, this.productoSeleccionado);
+
+                //asgnacion de valores a datelle factura
+                this.listaDetalleFactura.add(new Detallefactura(null, null, this.producto.getCodBarra(),
+                        this.producto.getNombreProducto(), Integer.parseInt(this.cantidadProducto), this.producto.getPrecioVenta(),
+                        Integer.parseInt(this.cantidadProducto) * this.producto.getPrecioVenta()));
+                this.transaction.commit();
+                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Correcto", "Producto agregados al detalle"));
+                this.cantidadProducto = "";
+                //Llamada al metodo totalFacturaventa
+                this.totalFacturaVenta();
             }
-            this.transaction.commit();
-              this.totalFacturaVenta();
         } catch (Exception e) {
             if (this.transaction != null) {
                 System.out.println(e.getMessage());
@@ -255,26 +219,53 @@ public class facturaBean implements Serializable {
                 this.session.close();
             }
         }
-
     }
-    
+
     //Metodo para calcualr el total a vender en factura
-    public void totalFacturaVenta(){
-    Float totalFacturaVenta = new Float("0");
-    
+    public void totalFacturaVenta() {
+        Float totalFacturaVenta = new Float("0");
+
         try {
-            for(Detallefactura item :listaDetalleFactura){
-            Float totalVentaPorProducto = new BigDecimal(item.getCantidad()).
-                                                    multiply((item.getPrecioVenta()));
-            item.setTotal(totalVentaPorProducto);
-            totalFacturaVenta= totalFacturaVenta + totalVentaPorProducto;
+            for (Detallefactura item : listaDetalleFactura) {
+                Float totalVentaPorProducto = item.getCantidad() * item.getPrecioVenta();
+                item.setTotal(totalVentaPorProducto);
+                totalFacturaVenta = totalFacturaVenta + totalVentaPorProducto;
             }
             this.factura.setTotalVenta(totalFacturaVenta);
-            
-        } catch (Exception e) {            
+
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
-    
-    
+    //metodo para quitar producto de detallefactura
+
+    public void quitarProductoDetalleFactura(String codBarrra, Integer filaSeleccionada) {
+        try {
+            int i = 0;
+            for (Detallefactura item : this.listaDetalleFactura) {
+                if (item.getCodBarra().equals(codBarrra) && filaSeleccionada.equals(i)) {
+                    this.listaDetalleFactura.remove(i);
+                    break;
+                }
+                i++;
+            }
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Correcto", "Producto retirado al detalle"));
+            //invocar el metodo calcular factura, para actuliar el total a vender
+            this.totalFacturaVenta();
+
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_FATAL, "Incorrecto", "Error"));
+        }
+    }
+
+    //metodos para editar la cantidad en la tabla detalle factura
+    public void onRowEdit(RowEditEvent event) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Informacion", "Se modifico la cantidad"));
+        this.totalFacturaVenta();
+    }
+
+    public void onRowCancel(RowEditEvent event) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Informacion", "No se hizo cambio"));
+    }
+
 }

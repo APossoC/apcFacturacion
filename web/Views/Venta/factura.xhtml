@@ -22,17 +22,16 @@
                     border-top-right-radius: 10px;
                     border-bottom-left-radius: 10px;
                     border-bottom-right-radius: 10px;
-                    box-shadow: 2px 2px 2px rgba(0,0,0,0.7);
-                    height: 140px;
-                    left: 0px;
-                    position: relative;    
-                    top: 0px;
+                    box-shadow: 2px 2px 2px rgba(0,0,0,0.7);                  
+                    position: relative;
                     width: 100%;
-                    height: 50%;
+                    margin: 0 auto;
+                    text-align: center;
+
                     ">REALIZAR VENTA</h2>
                 <h:form id="formFactura">    
                     <p:growl id="mensajeGeneral" showDetail="true" life="3000" autoUpdate="true"/>
-                    <p:panel header="-*-" style=" width: 900px; margin: 0 auto;text-align: center;">
+                    <p:panel header="-*-" style=" width: 100%; margin: 0 auto;text-align: center; height: 70%">
                         <p:layout id="capaDatosFactura" style="width:  100%;height: 150px;">
                             <p:layoutUnit id="datosCliente" position="center" 
                                           style="padding: 5px; text-align: justify;font-size: 14px" size="300">
@@ -73,18 +72,21 @@
                         <p:separator/>
 
                         <h:panelGrid id="gridBuscarProducto" columns="3" style="font-weight: bold;font-size: 14px">
-                            <p:outputLabel value="Codigo Barra" />                            
-                            <p:inputText id="txtBuscarProducto" value="#{facturaBean.codBarra}" size="15">
-                                <p:ajax event="blur" listener="#{facturaBean.agregarDatosProdcutoPorcodBarra()}"
-                                        update=":formFactura:tablaProductosFactura :formFactura:txtBuscarProducto"/> 
-                            </p:inputText>
-
+                            <p:outputLabel value="Listar Prodcutos: " />    
                             <p:commandButton value="Buscar" oncomplete="PF('dialogProductos').show();" 
                                              update="formFactura:dlgProductos"/>
                         </h:panelGrid>
 
                         <p:separator/>
-                        <p:dataTable id="tablaProductosFactura" value="#{facturaBean.listaDetalleFactura}" var="item" style="font-size: 14px">
+                        <p:dataTable id="tablaProductosFactura" value="#{facturaBean.listaDetalleFactura}" 
+                                     rowIndexVar="rowIndex" editable="true"                                     
+                                     var="item" style="font-size: 14px">
+
+                            <p:ajax event="rowEdit" listener="#{facturaBean.onRowEdit}"
+                                    update="formFactura:tablaProductosFactura :formFactura:gridTotalFactura" />
+                            <p:ajax event="rowEditCancel" listener="#{facturaBean.onRowCancel}"
+                                    update="formFactura:tablaProductosFactura :formFactura:gridTotalFactura" />
+
 
                             <p:column headerText="Codigo de barra">
                                 <h:outputText value="#{item.codBarra}"/>
@@ -94,9 +96,19 @@
                                 <h:outputText value="#{item.nombreProducto}"/>
                             </p:column>
 
-                            <p:column headerText="Cantidad">
-                                <h:outputText value="#{item.cantidad}"/>
-                                Unidades
+                            <p:column headerText="Cantidad" >
+                                <p:cellEditor>
+                                    <f:facet name="output"> 
+                                        <h:outputText value="#{item.cantidad}"/> Unidades
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText  value="#{item.cantidad}" required="true" requiredMessage="Cantidad requerida"
+                                                      converter="#{Integer}" converterMessage="Cantidad erronea"
+                                                      validatorMessage="Cantidad mayor o igual a 1" 
+                                                      ><f:validateLongRange minimum="1" /></p:inputText>                                        
+                                        
+                                    </f:facet>                                    
+                                </p:cellEditor> 
                             </p:column>
 
                             <p:column headerText="Precio de Venta">
@@ -108,11 +120,23 @@
                                 $
                                 <h:outputText value="#{item.total}"/>
                             </p:column>
+
+
+                            <p:column headerText="Editar Cantidad">
+                                <p:rowEditor style="text-decoration: none;color: darkgoldenrod"/>
+                            </p:column>
+
+                            <p:column headerText="Quitar Prodcuto">
+                                <p:commandButton  value="X" actionListener="#{facturaBean.quitarProductoDetalleFactura(item.codBarra, rowIndex)}" 
+                                                  title="Quitar Producto" style="text-decoration: none; color: red"
+                                                  update="formFactura:tablaProductosFactura :formFactura:gridTotalFactura"
+                                                  />
+                            </p:column>
                         </p:dataTable>
-                        
+
                         <h:panelGrid id="gridTotalFactura" columns="2" style="font-size: 24px;margin: 0 auto"> 
-                        TOTAL VENTA $
-                        <p:outputLabel value="#{facturaBean.factura.totalVenta}"/>
+                            TOTAL VENTA $
+                            <p:outputLabel value="#{facturaBean.factura.totalVenta}"/>
                         </h:panelGrid>
                         <p:separator/>
                         <p:commandButton value="Registrar" style="width: 150px; height: 50px" />
@@ -127,7 +151,9 @@
                               showEffect="puff" hideEffect="puff">
                         <p:dataTable id="tablaClientes" paginator="true" paginatorPosition="top "  style="width: 900px"
                                      var="ct" value="#{clienteBean.listaClientes}" emptyMessage="No hay datos de cliente"
-                                     >
+                                     widgetVar="filtroTablaClientes">
+
+
                             <p:column headerText="Codigo">
                                 <h:outputText value="#{ct.codCliente}"/>
                             </p:column>
@@ -136,7 +162,7 @@
                                 <h:outputText value="#{ct.dui}"/>
                             </p:column>
 
-                            <p:column headerText="Nombre del cliente">
+                            <p:column headerText="Nombre del cliente" filterBy="#{ct.nombres}" footerText="contains" filterMatchMode="contains">
                                 <h:outputText value="#{ct.nombres} #{ct.apellidos}"/>
                             </p:column>
 
@@ -166,13 +192,7 @@
                         <p:dataTable id="tablaProductos" paginator="true" paginatorPosition="top "  style="width: 900px"
                                      var="pro" value="#{productoBean.listaProductos}" emptyMessage="No hay datos de productos"
                                      widgetVar="filtroTablaProducto" >
-                            <f:facet name="header">
-                                <p:outputPanel>
-                                    <h:outputText value="Navegar:" />
-                                    <p:inputText id="globalFilter" onkeyup="PF('filtroTablaProducto').filter()" style="width:150px" placeholder="Enter keyword"/>
 
-                                </p:outputPanel>
-                            </f:facet>
 
                             <p:column headerText="Codigo" >
                                 <h:outputText value="#{pro.codProducto}"/>
@@ -201,6 +221,8 @@
                                 <h:outputText value="#{pro.codBarra}"/>
                             </p:column>
 
+
+
                             <p:column headerText="">
                                 <p:commandButton value="Seleccinar" 
                                                  actionListener="#{facturaBean.pedirCantidadProducto(pro.codBarra)}"
@@ -213,7 +235,7 @@
                         <p:commandButton value="Cerrar" onclick="PF('dialogProductos').hide();" />
                     </p:dialog>
 
-                    <!--Dialogo para filtar productos x codigo de barra-->
+                    <!--Dialogo para cantidad de producto-->
                     <p:dialog id="dlgCantidadProducto" widgetVar="dialogCantidadProducto" modal="true" 
                               showEffect="puff" hideEffect="puff">
                         Cantidad producto a vender:
@@ -224,6 +246,8 @@
                                          oncomplete="PF('dialogCantidadProducto').hide(); PF('dialogProductos').hide();"
                                          />
                     </p:dialog>
+
+
 
 
                 </h:form>
