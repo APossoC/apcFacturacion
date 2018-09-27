@@ -23,10 +23,10 @@
         <property name="cantidad" type="int">
             <column name="cantidad" not-null="true" />
         </property>
-        <property name="precioVenta" type="big_decimal">
+        <property name="precioVenta" type="float">
             <column name="precioVenta" precision="10" not-null="true" />
         </property>
-        <property name="total" type="big_decimal">
+        <property name="total" type="float">
             <column name="total" precision="10" not-null="true" />
         </property>
     </class>

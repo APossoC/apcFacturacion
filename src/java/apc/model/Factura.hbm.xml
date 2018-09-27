@@ -17,7 +17,7 @@
         <property name="numeroFactura" type="int">
             <column name="numeroFactura" not-null="true" />
         </property>
-        <property name="totalVenta" type="big_decimal">
+        <property name="totalVenta" type="float">
             <column name="totalVenta" precision="10" not-null="true" />
         </property>
         <property name="fechaRegistro" type="timestamp">

@@ -29,23 +29,38 @@
                     text-align: center;
 
                     ">REALIZAR VENTA</h2>
+                    
+                    <h:form>
+                        <h:panelGrid width="100%" style="margin: 0 auto; background-color: lightgray">
+                            <p:commandButton style="width: 150px; height: 60px" value="Nueva Venta" 
+                                             actionListener="#{facturaBean.numeracionFactura()}"
+                                             update="formFactura"
+                                             action="#{facturaBean.enabledButton()}"
+                                             />
+                        </h:panelGrid>
+                        
+                    </h:form>
                 <h:form id="formFactura">    
                     <p:growl id="mensajeGeneral" showDetail="true" life="3000" autoUpdate="true"/>
                     <p:panel header="-*-" style=" width: 100%; margin: 0 auto;text-align: center; height: 70%">
                         <p:layout id="capaDatosFactura" style="width:  100%;height: 150px;">
                             <p:layoutUnit id="datosCliente" position="center" 
                                           style="padding: 5px; text-align: justify;font-size: 14px" size="300">
+                                
                                 <h:panelGrid id="gridBuscarDatosCliente" columns="5">
                                     <p:outputLabel value="Identificacion: " style="font-weight: bold"></p:outputLabel>
-                                    <p:inputText id="txtBuscarCliente" value="#{facturaBean.dui}" size="15">
+                                    <p:inputText id="txtBuscarCliente" value="#{facturaBean.dui}" size="15"
+                                                 disabled="#{!facturaBean.enabled}">
                                         <p:ajax event="blur" listener="#{facturaBean.agregarDatosClientesPorDui()}"
                                                 update=":formFactura:gridDatosCliente :formFactura:txtBuscarCliente"/>      
                                     </p:inputText>  
                                     <p:commandButton value="Buscar" oncomplete="PF('dialogClientes').show();" 
-                                                     update="formFactura:dlgClientes"/>
+                                                     update="formFactura:dlgClientes"
+                                                     disabled="#{!facturaBean.enabled}"/>
                                     <p:outputLabel value="Fecha:   "  style="font-weight: bold"/>
                                     <p:outputLabel value="Fecha Sistema   "  style="font-weight: bold"/>
                                 </h:panelGrid>
+                                
                                 <p:separator/>
                                 <h:panelGrid id="gridDatosCliente" columns="2">
                                     <p:outputLabel value="Nombre: " style="font-weight: bold"></p:outputLabel>
@@ -65,7 +80,7 @@
                                           font-size: 14px" size="200">
                                 <h:panelGrid columns="1" style="font-size: 24px; font-weight: bold; margin-top: 30px; margin: 0 auto">
                                     FACTURA
-                                    <p:outputLabel value="000001" style="font-weight: bold"></p:outputLabel>
+                                    <p:outputLabel value="#{facturaBean.numeroFactura}" style="font-weight: bold"></p:outputLabel>
                                 </h:panelGrid>
                             </p:layoutUnit>                            
                         </p:layout>
@@ -74,7 +89,9 @@
                         <h:panelGrid id="gridBuscarProducto" columns="3" style="font-weight: bold;font-size: 14px">
                             <p:outputLabel value="Listar Prodcutos: " />    
                             <p:commandButton value="Buscar" oncomplete="PF('dialogProductos').show();" 
-                                             update="formFactura:dlgProductos"/>
+                                             update="formFactura:dlgProductos"
+                                             disabled="#{!facturaBean.enabled}"
+                                             />
                         </h:panelGrid>
 
                         <p:separator/>
@@ -136,12 +153,20 @@
 
                         <h:panelGrid id="gridTotalFactura" columns="2" style="font-size: 24px;margin: 0 auto"> 
                             TOTAL VENTA $
-                            <p:outputLabel value="#{facturaBean.factura.totalVenta}"/>
+                            <p:outputLabel value="#{facturaBean.totalVentaFactura}"/>
                         </h:panelGrid>
                         <p:separator/>
-                        <p:commandButton value="Registrar" style="width: 150px; height: 50px" />
-                        <p:commandButton value="Imprimir" style="width: 150px; height: 50px" />
-                        <p:commandButton value="Cancelar" style="width: 150px; height: 50px" />
+                        <p:commandButton value="Registrar" actionListener="#{facturaBean.guardarVenta()}" 
+                                         update="formFactura"
+                                         style="width: 150px; height: 50px" 
+                                         disabled="#{!facturaBean.enabled}"/>
+                        <p:commandButton value="Imprimir" style="width: 150px; height: 50px"
+                                         disabled="#{!facturaBean.enabled}"/>
+                        <p:commandButton value="Cancelar"  action="#{facturaBean.limpiarFactura()}" 
+                                         style="width: 150px; height: 50px"
+                                         update="formFactura"
+                                         disabled="#{!facturaBean.enabled}"
+                                         />
 
                     </p:panel>
 
